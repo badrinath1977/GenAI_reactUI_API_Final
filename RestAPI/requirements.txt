@@ -1,0 +1,17 @@
+
+fastapi==0.110.0
+uvicorn==0.29.0
+pyodbc
+pydantic>=2.7.4
+pydantic-settings
+langchain==0.2.14
+langchain-community==0.2.12
+langchain-openai==0.1.22
+langchain-huggingface
+faiss-cpu
+sentence-transformers
+python-multipart
+unstructured
+openpyxl
+pandas
+msoffcrypto-tool
