@@ -8,6 +8,7 @@ from app.services.vector_store_service import VectorStoreService
 from app.repository.prompt_repository import insert_user_prompt_log
 from app.repository.error_repository import insert_error_log
 from app.core.logger import logger
+from app.core.config import settings
 
 
 router = APIRouter(prefix="/chat", tags=["Chat"])
@@ -45,14 +46,22 @@ async def chat(request: ChatRequest):
         logger.info(f"Chat request from User={request.user_id}")
 
         # -----------------------------------
-        # 1️⃣ Load Department Vector Store
+        # 1️⃣ Resolve Provider + Model
+        # -----------------------------------
+        resolved_provider = request.provider or settings.LLM_PROVIDER
+        resolved_model = request.model_name or settings.LLM_MODEL_NAME
+
+        logger.info(f"Resolved LLM Provider: {resolved_provider}")
+        logger.info(f"Resolved LLM Model: {resolved_model}")
+
+        # -----------------------------------
+        # 2️⃣ Load Department Vector Store
         # -----------------------------------
         vector_service = VectorStoreService(department=request.department)
-
         retriever = vector_service.get_retriever()
 
         # -----------------------------------
-        # 2️⃣ Retrieve Relevant Documents
+        # 3️⃣ Retrieve Relevant Documents
         # -----------------------------------
         docs = retriever.invoke(request.question)
 
@@ -65,22 +74,15 @@ async def chat(request: ChatRequest):
         context = "\n\n".join(doc.page_content for doc in docs)
 
         # -----------------------------------
-        # 3️⃣ Get LLM Dynamically
+        # 4️⃣ Get LLM Dynamically
         # -----------------------------------
-        from app.core.config import settings
-        print("LLM Provider:", request.provider or settings.LLM_PROVIDER)
-        print("LLM Model:", request.model_name or settings.LLM_MODEL_NAME)
-        print("ENV LLM_PROVIDER:", settings.LLM_PROVIDER)
-        print("ENV LLM_MODEL_NAME:", settings.LLM_MODEL_NAME)
-        print("REQUEST PROVIDER:", request.provider)
-        print("REQUEST MODEL:", request.model_name)
         llm = get_llm(
-            provider=request.provider,
-            model_name=request.model_name
+            provider=resolved_provider,
+            model_name=resolved_model
         )
 
         # -----------------------------------
-        # 4️⃣ Construct RAG Prompt
+        # 5️⃣ Construct RAG Prompt
         # -----------------------------------
         final_prompt = f"""
 You are an enterprise AI assistant.
@@ -98,20 +100,22 @@ Question:
 """
 
         # -----------------------------------
-        # 5️⃣ Invoke LLM
+        # 6️⃣ Invoke LLM
         # -----------------------------------
         response = llm.invoke(final_prompt)
-
         answer = response.content if hasattr(response, "content") else str(response)
 
         # -----------------------------------
-        # 6️⃣ Log User Prompt
+        # 7️⃣ Log Prompt to Database
         # -----------------------------------
         insert_user_prompt_log(
-            user_id=request.user_id,
-            prompt=request.question,
-            model_used=request.model_name,
-            provider=request.provider
+            user_name=request.user_id,
+            question=request.question,
+            response=answer,
+            model_used=resolved_model,
+            provider=resolved_provider,
+            department=request.department,
+            tokens_used=None
         )
 
         return {
@@ -120,6 +124,7 @@ Question:
         }
 
     except Exception as ex:
+
         logger.error(f"Chat Error: {str(ex)}")
 
         insert_error_log(

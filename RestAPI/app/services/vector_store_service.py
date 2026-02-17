@@ -1,59 +1,40 @@
 import os
 from langchain_community.vectorstores import FAISS
-from app.core.config import settings
 from app.services.embedding_factory import get_embeddings
+from app.core.config import settings
+
+
+# Global cache per department
+_vector_cache = {}
 
 
 class VectorStoreService:
 
     def __init__(self, department: str):
+
         self.department = department
-        self.embeddings = get_embeddings()
 
-        # Create department-specific path
-        self.vector_path = os.path.join(settings.VECTOR_DB_PATH, department)
+        if department in _vector_cache:
+            self.vectorstore = _vector_cache[department]
+            return
 
-        if not os.path.exists(self.vector_path):
-            os.makedirs(self.vector_path, exist_ok=True)
+        embeddings = get_embeddings()
 
-        # Load if exists
-        if os.path.exists(os.path.join(self.vector_path, "index.faiss")):
-            self.vectorstore = FAISS.load_local(
-                self.vector_path,
-                self.embeddings,
-                allow_dangerous_deserialization=True
-            )
+        if settings.VECTOR_PER_DEPARTMENT:
+            vector_path = os.path.join(settings.VECTOR_DB_PATH, department)
         else:
-            self.vectorstore = None
+            vector_path = settings.VECTOR_DB_PATH
 
-    # ---------------------------------------
-    # Add documents to vector store
-    # ---------------------------------------
-    def add_documents(self, documents):
-        if self.vectorstore is None:
-            self.vectorstore = FAISS.from_documents(
-                documents,
-                self.embeddings
-            )
-        else:
-            self.vectorstore.add_documents(documents)
+        if not os.path.exists(vector_path):
+            raise Exception(f"Vector store not found for department: {department}")
 
-        self.vectorstore.save_local(self.vector_path)
+        self.vectorstore = FAISS.load_local(
+            vector_path,
+            embeddings,
+            allow_dangerous_deserialization=True
+        )
 
-    # ---------------------------------------
-    # Return retriever (THIS WAS MISSING)
-    # ---------------------------------------
-    def get_retriever(self, k: int = 4):
-        if self.vectorstore is None:
-            raise ValueError("Vector store is empty. Upload documents first.")
+        _vector_cache[department] = self.vectorstore
 
-        return self.vectorstore.as_retriever(search_kwargs={"k": k})
-
-    # ---------------------------------------
-    # Direct similarity search (optional)
-    # ---------------------------------------
-    def similarity_search(self, query: str, k: int = 4):
-        if self.vectorstore is None:
-            raise ValueError("Vector store is empty. Upload documents first.")
-
-        return self.vectorstore.similarity_search(query, k=k)
+    def get_retriever(self):
+        return self.vectorstore.as_retriever(search_kwargs={"k": 4})
