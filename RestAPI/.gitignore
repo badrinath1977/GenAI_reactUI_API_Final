@@ -1,77 +1,118 @@
-# Python Bytecode and caches
+# ==========================================
+# Python
+# ==========================================
+
 __pycache__/
 *.py[cod]
 *$py.class
-*.so
+*.pyo
+*.pyd
 
-# Virtual environments
+# ==========================================
+# Virtual Environment
+# ==========================================
+
 venv/
 env/
+gena_app_env/
 .venv/
-ENV/
 
-# Dependencies
-pip-wheel-metadata/
-share/python-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-MANIFEST
+# ==========================================
+# Environment Variables (Secrets)
+# ==========================================
 
-# PyInstaller
-*.manifest
-*.spec
-
-# Unit test / coverage reports
-htmlcov/
-.tox/
-.nox/
-.coverage
-.coverage.*
-.cache
-nosetests.xml
-coverage.xml
-*.cover
-.hypothesis/
-.pytest_cache/
-.pytest_cache/
-
-# Jupyter Notebooks
-.ipynb_checkpoints/
-*.ipynb_checkpoints
-
-# GenAI / ML specific
-*.pkl
-*.joblib
-model_artifacts/
-checkpoints/
-runs/
-lightning_logs/
-wandb/
-mlruns/
-tensorboard/
-artifacts/
-
-# AWS / Cloud
-.aws/
-credentials/
-config/
-
-# Environment variables & secrets
 .env
-.env.local
+.env.*
 *.env
 
-# IDEs
+# ==========================================
+# Logs
+# ==========================================
+
+logs/
+*.log
+
+# ==========================================
+# Uploaded Files
+# ==========================================
+
+uploaded_files/
+uploads/
+
+# ==========================================
+# Vector Store (FAISS)
+# ==========================================
+
+vector_store/
+*.faiss
+*.pkl
+*.index
+
+# ==========================================
+# SQLite (if used)
+# ==========================================
+
+*.sqlite3
+*.db
+
+# ==========================================
+# IDE / Editors
+# ==========================================
+
 .vscode/
 .idea/
 *.swp
 *.swo
 
-# OS
+# ==========================================
+# OS Files
+# ==========================================
+
 .DS_Store
 Thumbs.db
 
-# Logs
-*.log
-logs/
+# ==========================================
+# Pytest / Coverage
+# ==========================================
+
+.pytest_cache/
+.coverage
+htmlcov/
+
+# ==========================================
+# Build / Distribution
+# ==========================================
+
+build/
+dist/
+*.egg-info/
+
+# ==========================================
+# Jupyter Notebook
+# ==========================================
+
+.ipynb_checkpoints/
+
+# ==========================================
+# Temporary Files
+# ==========================================
+
+*.tmp
+*.bak
+*.old
+
+# ==========================================
+# Azure / Cloud
+# ==========================================
+
+.azure/
+*.pem
+*.key
+
+
+genai_api_env311/
+venv/
+env/
+__pycache__/
+*.pyc
+.env

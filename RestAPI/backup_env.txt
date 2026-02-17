@@ -1,0 +1,111 @@
+# ============================================
+# APPLICATION
+# ============================================
+
+APP_NAME=GenAI_Enterprise
+APP_ENV=DEV
+APP_PORT=8001
+LOG_LEVEL=INFO
+
+
+# ============================================
+# JWT CONFIGURATION
+# ============================================
+
+JWT_SECRET=jwt12345
+JWT_ALGORITHM=HS256
+JWT_EXPIRATION_MINUTES=120
+
+
+# ============================================
+# DATABASE CONFIGURATION (SQL SERVER)
+# ============================================
+
+DB_SERVER=localhost\SQLEXPRESS
+DB_DATABASE=GenAI
+DB_DRIVER=ODBC Driver 17 for SQL Server
+
+# If using SQL Authentication instead of Windows Auth:
+# DB_USERNAME=sa
+# DB_PASSWORD=your_password_here
+
+
+# ============================================
+# LLM CONFIGURATION (DEFAULT)
+# ============================================
+
+# Supported:
+# openai
+# ollama
+# huggingface (future)
+# copilot (future)
+
+LLM_PROVIDER=ollama
+LLM_MODEL_NAME=llama3
+
+
+# ============================================
+# OPENAI CONFIGURATION
+# ============================================
+
+OPENAI_API_KEY=your_openai_api_key_here
+
+
+# ============================================
+# OLLAMA CONFIGURATION
+# ============================================
+
+OLLAMA_BASE_URL=http://localhost:11434
+
+
+# ============================================
+# EMBEDDING CONFIGURATION
+# ============================================
+
+# local = sentence-transformers
+# openai = OpenAI embeddings
+
+EMBEDDING_PROVIDER=local
+EMBEDDING_MODEL_NAME=sentence-transformers/all-MiniLM-L6-v2
+
+
+# ============================================
+# VECTOR DATABASE CONFIGURATION
+# ============================================
+
+# Base folder
+VECTOR_DB_PATH=vector_store
+
+# If TRUE → vector store will be created per department:
+# vector_store/HR
+# vector_store/IT
+# vector_store/Security
+VECTOR_PER_DEPARTMENT=true
+
+
+# ============================================
+# FILE STORAGE CONFIGURATION
+# ============================================
+
+UPLOAD_FOLDER=uploaded_files
+MAX_FILE_SIZE_MB=50
+
+
+# ============================================
+# SENSITIVE DATA MASKING
+# ============================================
+
+ENABLE_MASKING=true
+MASK_CHAR=*
+MASK_EMAIL=true
+MASK_PHONE=true
+MASK_SSN=true
+
+
+# ============================================
+# CORS CONFIGURATION
+# ============================================
+
+CORS_ALLOW_ORIGINS=*
+CORS_ALLOW_METHODS=*
+CORS_ALLOW_HEADERS=*
