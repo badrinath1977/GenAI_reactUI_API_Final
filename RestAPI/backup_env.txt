@@ -1,110 +1,121 @@
-# ============================================
-# APPLICATION
-# ============================================
+# ============================================================
+# APPLICATION SETTINGS
+# ============================================================
 
 APP_NAME=GenAI_Enterprise
 APP_ENV=DEV
-APP_PORT=8001
+APP_PORT=8002
 LOG_LEVEL=INFO
 
 
-# ============================================
+# ============================================================
 # JWT CONFIGURATION
-# ============================================
+# ============================================================
 
 JWT_SECRET=jwt12345
+JWT_HEADER_NAME=X-API-KEY
 JWT_ALGORITHM=HS256
 JWT_EXPIRATION_MINUTES=120
 
 
-# ============================================
-# DATABASE CONFIGURATION (SQL SERVER)
-# ============================================
+# ============================================================
+# DATABASE (SQL SERVER - Windows Auth)
+# ============================================================
 
+DB_DRIVER=ODBC Driver 17 for SQL Server
 DB_SERVER=localhost\SQLEXPRESS
 DB_DATABASE=GenAI
-DB_DRIVER=ODBC Driver 17 for SQL Server
-
-# If using SQL Authentication instead of Windows Auth:
-# DB_USERNAME=sa
-# DB_PASSWORD=your_password_here
+DB_TRUSTED_CONNECTION=yes
 
 
-# ============================================
-# LLM CONFIGURATION (DEFAULT)
-# ============================================
-
-# Supported:
-# openai
-# ollama
-# huggingface (future)
-# copilot (future)
+# ============================================================
+# DEFAULT LLM CONFIGURATION (Fallback Only)
+# This is used ONLY if provider/model not passed in API request
+# ============================================================
 
 LLM_PROVIDER=ollama
-LLM_MODEL_NAME=llama3
+LLM_MODEL_NAME=phi3:latest
 
 
-# ============================================
+# ============================================================
 # OPENAI CONFIGURATION
-# ============================================
+# ============================================================
 
-OPENAI_API_KEY=your_openai_api_key_here
+# To use OpenAI:
+# 1️⃣ Set LLM_PROVIDER=openai
+# 2️⃣ Set LLM_MODEL_NAME=gpt-4o-mini
+# 3️⃣ Add your API key below
+LLM_PROVIDER=openai
+LLM_MODEL_NAME=gpt-3.5-turbo
+OPENAI_API_KEY=sk-proj-
 
 
-# ============================================
-# OLLAMA CONFIGURATION
-# ============================================
+# ============================================================
+# AZURE / COPILOT CONFIGURATION
+# ============================================================
+
+AZURE_ENDPOINT=
+AZURE_KEY=
+
+
+# ============================================================
+# OLLAMA CONFIGURATION (BEST FOR CPU MACHINE)
+# ============================================================
 
 OLLAMA_BASE_URL=http://localhost:11434
 
 
-# ============================================
+# ============================================================
+# HUGGINGFACE CLOUD CONFIGURATION
+# ============================================================
+LLM_PROVIDER=huggingface
+LLM_MODEL_NAME=google/flan-t5-base
+HF_API_TOKEN=hf_EtorGDeRW
+
+
+# ============================================================
 # EMBEDDING CONFIGURATION
-# ============================================
+# ============================================================
 
-# local = sentence-transformers
-# openai = OpenAI embeddings
-
+# Recommended for CPU
 EMBEDDING_PROVIDER=local
 EMBEDDING_MODEL_NAME=sentence-transformers/all-MiniLM-L6-v2
 
+# If using OpenAI embeddings (It will cost husge cost):
+# EMBEDDING_PROVIDER=openai
+# EMBEDDING_MODEL_NAME=text-embedding-3-small
 
-# ============================================
+
+# ============================================================
 # VECTOR DATABASE CONFIGURATION
-# ============================================
+# ============================================================
 
-# Base folder
 VECTOR_DB_PATH=vector_store
-
-# If TRUE → vector store will be created per department:
-# vector_store/HR
-# vector_store/IT
-# vector_store/Security
 VECTOR_PER_DEPARTMENT=true
 
 
-# ============================================
-# FILE STORAGE CONFIGURATION
-# ============================================
+# ============================================================
+# FILE STORAGE
+# ============================================================
 
 UPLOAD_FOLDER=uploaded_files
 MAX_FILE_SIZE_MB=50
 
 
-# ============================================
-# SENSITIVE DATA MASKING
-# ============================================
+# ============================================================
+# MASKING CONFIGURATION
+# ============================================================
 
-ENABLE_MASKING=true
+ENABLE_MASKING=false
 MASK_CHAR=*
 MASK_EMAIL=true
 MASK_PHONE=true
 MASK_SSN=true
 
 
-# ============================================
+# ============================================================
 # CORS CONFIGURATION
-# ============================================
+# ============================================================
 
 CORS_ALLOW_ORIGINS=*
 CORS_ALLOW_METHODS=*
