@@ -1,47 +1,91 @@
-
 from pydantic_settings import BaseSettings
-from pydantic import Field
-from enum import Enum
+from typing import Optional
 
-class LLMProvider(str, Enum):
-    OPENAI = "openai"
-    AZURE = "azure"
-    OLLAMA = "ollama"
-    HUGGINGFACE = "huggingface"
-    COPILOT = "copilot"
-
-class EmbeddingProvider(str, Enum):
-    OPENAI = "openai"
-    LOCAL = "local"
 
 class Settings(BaseSettings):
 
-    # JWT
-    JWT_SECRET: str
-    JWT_HEADER_NAME: str = "X-API-KEY"
+    # ============================================
+    # APPLICATION
+    # ============================================
+    APP_NAME: str
+    APP_ENV: str
+    APP_PORT: int
+    LOG_LEVEL: str
 
-    # Database
+    # ============================================
+    # JWT
+    # ============================================
+    JWT_SECRET: str
+    JWT_HEADER_NAME: str
+    JWT_ALGORITHM: str
+    JWT_EXPIRATION_MINUTES: int
+
+    # ============================================
+    # DATABASE
+    # ============================================
+    DB_DRIVER: str
     DB_SERVER: str
     DB_DATABASE: str
-    DB_DRIVER: str = "ODBC Driver 17 for SQL Server"
+    DB_TRUSTED_CONNECTION: str
 
+    # ============================================
     # LLM
-    LLM_PROVIDER: LLMProvider
+    # ============================================
+    LLM_PROVIDER: str
     LLM_MODEL_NAME: str
-    OPENAI_API_KEY: str | None = None
-    AZURE_ENDPOINT: str | None = None
-    AZURE_KEY: str | None = None
-    OLLAMA_BASE_URL: str | None = None
-    HF_MODEL_NAME: str | None = None
 
-    # Embedding
-    EMBEDDING_PROVIDER: EmbeddingProvider
+    OPENAI_API_KEY: Optional[str] = None
+    AZURE_ENDPOINT: Optional[str] = None
+    AZURE_KEY: Optional[str] = None
+    OLLAMA_BASE_URL: Optional[str] = None
+    HF_API_TOKEN: Optional[str] = None
+
+    # ============================================
+    # EMBEDDING
+    # ============================================
+    EMBEDDING_PROVIDER: str
     EMBEDDING_MODEL_NAME: str
 
-    # Vector DB
+    # ============================================
+    # VECTOR DATABASE
+    # ============================================
     VECTOR_DB_PATH: str
+    VECTOR_PER_DEPARTMENT: bool
+
+    # ============================================
+    # FILE STORAGE
+    # ============================================
+    UPLOAD_FOLDER: str
+    MAX_FILE_SIZE_MB: int
+
+    # ============================================
+    # MASKING
+    # ============================================
+    ENABLE_MASKING: bool
+    MASK_CHAR: str
+    MASK_EMAIL: bool
+    MASK_PHONE: bool
+    MASK_SSN: bool
+
+    # ============================================
+    # CORS
+    # ============================================
+    CORS_ALLOW_ORIGINS: str
+    CORS_ALLOW_METHODS: str
+    CORS_ALLOW_HEADERS: str
 
     class Config:
         env_file = ".env"
+        extra = "ignore"
+
+    @property
+    def DB_CONNECTION_STRING(self) -> str:
+        return (
+            f"Driver={{{self.DB_DRIVER}}};"
+            f"Server={self.DB_SERVER};"
+            f"Database={self.DB_DATABASE};"
+            f"Trusted_Connection={self.DB_TRUSTED_CONNECTION};"
+        )
+
 
 settings = Settings()

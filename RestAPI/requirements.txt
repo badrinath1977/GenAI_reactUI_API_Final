@@ -1,21 +1,67 @@
-fastapi
-uvicorn[standard]
+# =============================
+# FastAPI & Server
+# =============================
+fastapi==0.111.0
+uvicorn[standard]==0.30.1
 
-pydantic
-pydantic-settings
+# =============================
+# Pydantic (v2)
+# =============================
+pydantic==2.8.2
+pydantic-settings==2.3.4
 
-sqlalchemy
-pyodbc
+# =============================
+# LangChain (0.2 Ecosystem ONLY)
+# =============================
+langchain==0.2.16
+langchain-core==0.2.38
+langchain-community==0.2.16
+langchain-openai==0.1.23
+langchain-text-splitters==0.2.4
+langsmith==0.1.147
 
-python-multipart
-python-dotenv
-PyJWT
+# =============================
+# OpenAI SDK
+# =============================
+openai==1.109.1
 
+# =============================
+# Embeddings (HuggingFace - 0.2 compatible)
+# =============================
+sentence-transformers==2.7.0
+transformers==4.41.2
+torch==2.3.1
+
+# =============================
+# Vector Store
+# =============================
+faiss-cpu==1.8.0
+
+# =============================
+# Document Processing
+# =============================
+unstructured==0.14.9
+python-docx==1.1.2
+
+# =============================
+# Database (SQL Server)
+# =============================
+pyodbc==5.1.0
+
+# =============================
+# Auth / JWT
+# =============================
+PyJWT==2.9.0
+passlib[bcrypt]==1.7.4
+
+# =============================
+# Utilities
+# =============================
+python-multipart==0.0.9
+python-dotenv==1.0.1
+requests==2.32.3
 numpy==1.26.4
 
-langchain
-langchain-community
-langchain-openai
-
-faiss-cpu
-unstructured
+psutil==5.9.8
+pandas==2.2.2
+openpyxl==3.1.2

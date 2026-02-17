@@ -3,13 +3,13 @@
 ## Overrride the python version with 3.11 
 -- py -3.11 -m venv genai_api_env311
 ## Activate Env
--- genai_api_env\Scripts\activate
+-- genai_api_env311\Scripts\activate
 
 ### Exe requirements.txt for lib setup 
 -- pip install -r requirements.txt
 
 # Application 
-## Run -- uvicorn app.main:app --reload --port 8001
+## Run -- uvicorn app.main:app --reload --port 8002
 
 # Deletion 
 -- rmdir /s /q genai_api_env311

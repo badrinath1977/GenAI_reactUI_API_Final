@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Header, HTTPException
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import Optional
 import traceback
@@ -7,7 +7,6 @@ from app.services.llm_factory import get_llm
 from app.services.vector_store_service import VectorStoreService
 from app.repository.prompt_repository import insert_user_prompt_log
 from app.repository.error_repository import insert_error_log
-from app.core.security import validate_jwt_token
 from app.core.logger import logger
 
 
@@ -29,75 +28,85 @@ class ChatRequest(BaseModel):
 # ------------------------------------------
 # Chat Endpoint
 # ------------------------------------------
-# import pdb;pdb.set_trace()
-@router.post("/")
 
-async def chat(
-   
-    request: ChatRequest,
-    # authorization: str = Header(...)
-):
+@router.post("/")
+async def chat(request: ChatRequest):
     """
-    Chat Endpoint with:
-    - JWT validation
-    - Department-based vector store
-    - Dynamic LLM selection
+    Enterprise RAG Chat Endpoint
+
+    Features:
+    - Department-based vector isolation
+    - Dynamic LLM provider selection
     - Prompt logging
     - Error logging
     """
 
     try:
-        # -------------------------------
-        # 1️⃣ Validate JWT
-        # -------------------------------
-        # validate_jwt_token(authorization)
-
         logger.info(f"Chat request from User={request.user_id}")
 
-        # -------------------------------
-        # 2️⃣ Load Vector Store by Department
-        # -------------------------------
+        # -----------------------------------
+        # 1️⃣ Load Department Vector Store
+        # -----------------------------------
         vector_service = VectorStoreService(department=request.department)
 
         retriever = vector_service.get_retriever()
 
-        # -------------------------------
+        # -----------------------------------
+        # 2️⃣ Retrieve Relevant Documents
+        # -----------------------------------
+        docs = retriever.invoke(request.question)
+
+        if not docs:
+            return {
+                "answer": "No relevant information found in the selected department.",
+                "department": request.department
+            }
+
+        context = "\n\n".join(doc.page_content for doc in docs)
+
+        # -----------------------------------
         # 3️⃣ Get LLM Dynamically
-        # -------------------------------
+        # -----------------------------------
+        from app.core.config import settings
+        print("LLM Provider:", request.provider or settings.LLM_PROVIDER)
+        print("LLM Model:", request.model_name or settings.LLM_MODEL_NAME)
+        print("ENV LLM_PROVIDER:", settings.LLM_PROVIDER)
+        print("ENV LLM_MODEL_NAME:", settings.LLM_MODEL_NAME)
+        print("REQUEST PROVIDER:", request.provider)
+        print("REQUEST MODEL:", request.model_name)
         llm = get_llm(
             provider=request.provider,
             model_name=request.model_name
         )
-        
 
-        # -------------------------------
-        # 4️⃣ Retrieve Context
-        # -------------------------------
-        docs = retriever.get_relevant_documents(request.question)
-
-        context = "\n".join([doc.page_content for doc in docs])
-
-        # -------------------------------
-        # 5️⃣ Build Prompt
-        # -------------------------------
+        # -----------------------------------
+        # 4️⃣ Construct RAG Prompt
+        # -----------------------------------
         final_prompt = f"""
-        You are an enterprise AI assistant.
-        Answer strictly using provided context.
+You are an enterprise AI assistant.
 
-        Context:
-        {context}
+Rules:
+- Answer strictly using the provided context.
+- If answer is not in the context, say: "Information not available in provided documents."
+- Do not hallucinate.
 
-        Question:
-        {request.question}
-        """
+Context:
+{context}
 
+Question:
+{request.question}
+"""
+
+        # -----------------------------------
+        # 5️⃣ Invoke LLM
+        # -----------------------------------
         response = llm.invoke(final_prompt)
 
         answer = response.content if hasattr(response, "content") else str(response)
 
-        # -------------------------------
+        # -----------------------------------
         # 6️⃣ Log User Prompt
-        # -------------------------------
+        # -----------------------------------
         insert_user_prompt_log(
             user_id=request.user_id,
             prompt=request.question,
@@ -106,12 +115,11 @@ async def chat(
         )
 
         return {
-            "answer": answer,
+            "answer": answer.strip(),
             "department": request.department
         }
 
     except Exception as ex:
-
         logger.error(f"Chat Error: {str(ex)}")
 
         insert_error_log(

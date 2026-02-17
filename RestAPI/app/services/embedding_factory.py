@@ -2,11 +2,12 @@ from app.core.config import settings
 
 
 def get_embeddings():
+
     provider = settings.EMBEDDING_PROVIDER.lower()
 
-    # --------------------------
-    # OpenAI Embeddings
-    # --------------------------
+    # ===============================
+    # OPENAI
+    # ===============================
     if provider == "openai":
         from langchain_openai import OpenAIEmbeddings
 
@@ -15,23 +16,24 @@ def get_embeddings():
             model=settings.EMBEDDING_MODEL_NAME
         )
 
-    # --------------------------
-    # Local / HuggingFace
-    # --------------------------
+    # ===============================
+    # LOCAL / HF EMBEDDINGS
+    # ===============================
     elif provider in ["local", "huggingface"]:
-        from langchain_huggingface import HuggingFaceEmbeddings
+        from langchain_community.embeddings import HuggingFaceEmbeddings
 
         return HuggingFaceEmbeddings(
             model_name=settings.EMBEDDING_MODEL_NAME
         )
 
-    # --------------------------
-    # Ollama Embeddings
-    # --------------------------
+    # ===============================
+    # OLLAMA EMBEDDINGS
+    # ===============================
     elif provider == "ollama":
         from langchain_community.embeddings import OllamaEmbeddings
 
         return OllamaEmbeddings(
+            base_url=settings.OLLAMA_BASE_URL,
             model=settings.EMBEDDING_MODEL_NAME
         )
 

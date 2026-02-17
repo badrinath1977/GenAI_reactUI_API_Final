@@ -55,3 +55,7 @@ coverage/
 # Optional: Keep manifest if needed
 # ------------------------------
 # (Do NOT ignore public/manifest.json)
+
+# don't commit dist folder and node_modules
+browser-extension/dist/
+browser-extension/node_modules/

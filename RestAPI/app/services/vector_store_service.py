@@ -1,33 +1,5 @@
-# import os
-# from langchain_community.vectorstores import FAISS
-# from app.core.config import settings
-
-
-# class VectorStoreService:
-
-#     def __init__(self, embeddings):
-#         self.embeddings = embeddings
-
-#     def _get_department_path(self, department: str):
-#         base_path = settings.VECTOR_DB_PATH
-#         dept_path = os.path.join(base_path, department)
-#         os.makedirs(dept_path, exist_ok=True)
-#         return dept_path
-
-#     def save(self, docs, department: str):
-#         dept_path = self._get_department_path(department)
-#         db = FAISS.from_documents(docs, self.embeddings)
-#         db.save_local(dept_path)
-
-#     def load(self, department: str):
-#         dept_path = self._get_department_path(department)
-#         if not os.path.exists(dept_path):
-#             raise Exception(f"No vector DB found for department: {department}")
-#         return FAISS.load_local(dept_path, self.embeddings)
-
-
 import os
-from langchain.vectorstores import FAISS
+from langchain_community.vectorstores import FAISS
 from app.core.config import settings
 from app.services.embedding_factory import get_embeddings
 
@@ -36,33 +8,52 @@ class VectorStoreService:
 
     def __init__(self, department: str):
         self.department = department
-
-        # Create department specific vector path
-        self.vector_path = os.path.join(settings.VECTOR_DB_PATH, department)
-
-        os.makedirs(self.vector_path, exist_ok=True)
-
         self.embeddings = get_embeddings()
 
+        # Create department-specific path
+        self.vector_path = os.path.join(settings.VECTOR_DB_PATH, department)
+
+        if not os.path.exists(self.vector_path):
+            os.makedirs(self.vector_path, exist_ok=True)
+
+        # Load if exists
         if os.path.exists(os.path.join(self.vector_path, "index.faiss")):
-            self.db = FAISS.load_local(
+            self.vectorstore = FAISS.load_local(
                 self.vector_path,
                 self.embeddings,
                 allow_dangerous_deserialization=True
             )
         else:
-            self.db = None
+            self.vectorstore = None
 
+    # ---------------------------------------
+    # Add documents to vector store
+    # ---------------------------------------
     def add_documents(self, documents):
-        if self.db:
-            self.db.add_documents(documents)
+        if self.vectorstore is None:
+            self.vectorstore = FAISS.from_documents(
+                documents,
+                self.embeddings
+            )
         else:
-            self.db = FAISS.from_documents(documents, self.embeddings)
+            self.vectorstore.add_documents(documents)
 
-        self.db.save_local(self.vector_path)
+        self.vectorstore.save_local(self.vector_path)
 
-    def similarity_search(self, query: str, k: int = 3):
-        if not self.db:
-            return []
+    # ---------------------------------------
+    # Return retriever (THIS WAS MISSING)
+    # ---------------------------------------
+    def get_retriever(self, k: int = 4):
+        if self.vectorstore is None:
+            raise ValueError("Vector store is empty. Upload documents first.")
 
-        return self.db.similarity_search(query, k=k)
+        return self.vectorstore.as_retriever(search_kwargs={"k": k})
+
+    # ---------------------------------------
+    # Direct similarity search (optional)
+    # ---------------------------------------
+    def similarity_search(self, query: str, k: int = 4):
+        if self.vectorstore is None:
+            raise ValueError("Vector store is empty. Upload documents first.")
+
+        return self.vectorstore.similarity_search(query, k=k)

@@ -15,6 +15,7 @@ __pycache__/
 venv/
 env/
 gena_app_env/
+genai_api_env311/
 .venv/
 
 # ==========================================
