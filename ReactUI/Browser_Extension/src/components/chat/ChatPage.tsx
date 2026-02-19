@@ -1,75 +1,125 @@
 import React, { useState } from "react";
-import { Message } from "../../models/MessageModels";
-import { ChatRequest } from "../../models/ChatModels";
-import { sendChatAPI } from "../../api/apiClient";
+import { sendChatMessage } from "../../api/apiClient";
+import { Message } from "../../models/ChatTypes";
 import ChatInput from "./ChatInput";
 import ChatMessages from "./ChatMessages";
 import UploadModal from "./UploadModal";
 
 const ChatPage: React.FC = () => {
-
-  const [department, setDepartment] = useState<string>("IT");
-  const [question, setQuestion] = useState<string>("");
   const [messages, setMessages] = useState<Message[]>([]);
-  const [showModal, setShowModal] = useState<boolean>(false);
+  const [department, setDepartment] = useState("");
+  const [showUpload, setShowUpload] = useState(false);
 
-  const handleSend = async (): Promise<void> => {
-
+  const handleSendMessage = async (question: string): Promise<void> => {
     if (!question.trim()) return;
 
-    const payload: ChatRequest = {
-      user_id: "Badri_User",
-      question,
+    // 🚨 Department Validation
+    if (!department) {
+      const warningMessage: Message = {
+        id: crypto.randomUUID(),
+        type: "bot",
+        text: "⚠ Please select a department before searching.",
+        timestamp: new Date().toISOString(),
+        department: "System",
+      };
+
+      setMessages((prev) => [...prev, warningMessage]);
+      return;
+    }
+
+    const userMessage: Message = {
+      id: crypto.randomUUID(),
+      type: "user",
+      text: question,
+      timestamp: new Date().toISOString(),
       department,
-      provider: null,
-      model_name: null
     };
 
+    setMessages((prev) => [...prev, userMessage]);
+
+    const typingId = crypto.randomUUID();
+
+    const typingMessage: Message = {
+      id: typingId,
+      type: "bot",
+      text: "Typing...",
+      timestamp: new Date().toISOString(),
+      department,
+    };
+
+    setMessages((prev) => [...prev, typingMessage]);
+
     try {
-      const response = await sendChatAPI(payload);
+      const response = await sendChatMessage(
+        "BrowserUser",
+        question,
+        department
+      );
 
-      setMessages(prev => [
-        ...prev,
-        { type: "user", text: question },
-        { type: "bot", text: response.answer }
-      ]);
-
-      setQuestion("");
-
-    } catch (error) {
-      console.error(error);
+      setMessages((prev) =>
+        prev.map((msg) =>
+          msg.id === typingId
+            ? { ...msg, text: response.answer }
+            : msg
+        )
+      );
+    } catch (error: any) {
+      setMessages((prev) =>
+        prev.map((msg) =>
+          msg.id === typingId
+            ? {
+                ...msg,
+                text: error.message || "Search failed",
+              }
+            : msg
+        )
+      );
     }
   };
 
   return (
-    <div className="popup-container">
+    <div className="chat-container">
 
-      <div className="header">
-        <span>Enterprise Copilot</span>
-
-        <select
-          value={department}
-          onChange={(e) => setDepartment(e.target.value)}
-        >
-          <option value="IT">IT</option>
-          <option value="HR">HR</option>
-          <option value="Finance">Finance</option>
-        </select>
+      {/* HEADER */}
+      <div className="chat-header">
+        🤖 Enterprise AI Assistant
       </div>
 
+      {/* DEPARTMENT SELECT */}
+      <select
+        value={department}
+        onChange={(e) => setDepartment(e.target.value)}
+        className="department-select"
+      >
+        <option value="">Select Department</option>
+        <option value="HR">HR</option>
+        <option value="IT">IT</option>
+        <option value="Finance">Finance</option>
+        <option value="All">All</option>
+      </select>
+
+      {/* MESSAGE AREA */}
       <ChatMessages messages={messages} />
 
-      <ChatInput
-        question={question}
-        setQuestion={setQuestion}
-        onSend={handleSend}
-        onUploadClick={() => setShowModal(true)}
-      />
+      {/* BOTTOM FIXED SECTION */}
+      <div className="bottom-section">
+        <div className="chat-input-wrapper">
+          <button
+            className="attach-btn"
+            onClick={() => setShowUpload(true)}
+          >
+            +
+          </button>
 
-      {showModal && (
+          <ChatInput onSend={handleSendMessage} />
+        </div>
+      </div>
+
+      {/* UPLOAD POPUP */}
+      {showUpload && (
         <UploadModal
           department={department}
-          onClose={() => setShowModal(false)}
+          onClose={() => setShowUpload(false)}
         />
       )}
 

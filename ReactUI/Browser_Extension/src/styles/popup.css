@@ -1,122 +1,170 @@
-/* ---------- ROOT ---------- */
-
-#root {
-  width: 420px;     /* Popup width */
-  height: 650px;    /* Popup height */
+/* ==============================
+   GLOBAL
+============================== */
+body {
+  margin: 0;
+  padding: 0;
+  height: 100vh;
 }
 
-/* ---------- MAIN CONTAINER ---------- */
+/* ==============================
+   MAIN CONTAINER
+============================== */
+.chat-container {
+  width: 100%;
+  height: 100vh;              /* FULL HEIGHT */
+  display: flex;
+  flex-direction: column;     /* COLUMN LAYOUT */
+  font-family: "Segoe UI", Arial, sans-serif;
+  background: #f4f6f9;
+  position: relative;
+}
 
-.popup-container {
+/* ==============================
+   HEADER
+============================== */
+.chat-header {
+  background: linear-gradient(135deg, #1f3c88, #2d7ff9);
+  color: white;
+  font-weight: 600;
+  font-size: 16px;
+  text-align: center;
+  padding: 14px;
+}
+
+/* ==============================
+   DEPARTMENT SELECT
+============================== */
+.department-select {
+  margin: 10px;
+  padding: 8px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+}
+
+/* ==============================
+   MESSAGE AREA (SCROLLABLE)
+============================== */
+.chat-area {
+  flex: 1;                    /* TAKE REMAINING SPACE */
+  overflow-y: auto;           /* SCROLL ONLY HERE */
+  padding: 12px;
   display: flex;
   flex-direction: column;
-  width: 100%;
-  height: 100%;
-  background: #ffffff;
-  font-family: -apple-system, BlinkMacSystemFont,
-               "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  gap: 12px;
 }
 
-/* ---------- HEADER ---------- */
-
-.header {
-  padding: 14px 16px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-bottom: 1px solid #e5e7eb;
-}
-
-.header span {
-  font-size: 15px;
-  font-weight: 600;
-}
-
-.header select {
-  padding: 4px 6px;
-  font-size: 12px;
-  border: 1px solid #d1d5db;
-  border-radius: 4px;
-}
-
-/* ---------- CHAT AREA ---------- */
-
-.chat-area {
-  flex: 1;
-  padding: 14px;
-  background: #f9fafb;
-  overflow-y: auto;
-}
-
-
-/* Chrome scrollbar only when needed */
-.chat-area::-webkit-scrollbar {
-  width: 6px;
-}
-
-.chat-area::-webkit-scrollbar-thumb {
-  background: transparent;   /* hide by default */
-}
-
-.chat-area:hover::-webkit-scrollbar-thumb {
-  background: #d1d5db;       /* show on hover */
-}
-
-
-/* ---------- MESSAGES ---------- */
-
+/* ==============================
+   MESSAGE BUBBLES
+============================== */
 .user-msg {
   align-self: flex-end;
-  background: #dbeafe;
-  padding: 8px 12px;
-  border-radius: 12px;
-  margin: 6px 0;
-  font-size: 13px;
-  max-width: 85%;
+  background: linear-gradient(135deg, #2d7ff9, #3f8efc);
+  color: white;
+  padding: 10px 14px;
+  border-radius: 16px;
+  max-width: 75%;
 }
 
 .bot-msg {
   align-self: flex-start;
   background: white;
-  padding: 8px 12px;
-  border-radius: 12px;
-  margin: 6px 0;
-  font-size: 13px;
-  border: 1px solid #e5e7eb;
-  max-width: 85%;
+  padding: 10px 14px;
+  border-radius: 16px;
+  max-width: 75%;
 }
 
-/* ---------- INPUT FIXED AT BOTTOM ---------- */
+/* ==============================
+   BOTTOM SECTION (DOCKED)
+============================== */
+.bottom-section {
+  margin-top: auto;           /* PUSH TO BOTTOM */
+  padding: 10px;
+  background: white;
+  border-top: 1px solid #ddd;
+}
 
-.input-area {
+/* ==============================
+   INPUT WRAPPER
+============================== */
+.chat-input-wrapper {
   display: flex;
-  align-items: center;
   gap: 8px;
-  padding: 10px 12px;
-  border-top: 1px solid #e5e7eb;
-  background: #ffffff;
-}
-
-.input-area input {
-  flex: 1;
-  padding: 8px 10px;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  font-size: 13px;
-  outline: none;
-}
-
-.input-area input:focus {
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 1px #3b82f6;
-}
-
-.icon-btn {
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  padding: 6px;
-  display: flex;
   align-items: center;
-  justify-content: center;
+}
+
+.attach-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  background: #2d7ff9;
+  color: white;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.attach-btn:hover {
+  background: #1f6ae0;
+}
+
+/* ==============================
+   CHAT INPUT
+============================== */
+.chat-input {
+  display: flex;
+  gap: 6px;
+  flex: 1;
+}
+
+.chat-input input {
+  flex: 1;
+  padding: 8px;
+  border-radius: 10px;
+  border: 1px solid #ccc;
+}
+
+.chat-input button {
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: none;
+  background: #2d7ff9;
+  color: white;
+  cursor: pointer;
+}
+
+/* ==============================
+   UPLOAD MODAL
+============================== */
+.upload-overlay {
+  position: absolute;
+  bottom: 80px;               /* ABOVE INPUT */
+  left: 10px;
+  right: 10px;
+  background: rgba(0, 0, 0, 0.4);
+  padding: 12px;
+  border-radius: 12px;
+  z-index: 100;
+}
+
+.upload-modal {
+  background: white;
+  padding: 12px;
+  border-radius: 12px;
+}
+
+.upload-title {
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+.upload-actions {
+  margin-top: 10px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.cancel-btn {
+  background: #ccc;
+  color: black;
 }

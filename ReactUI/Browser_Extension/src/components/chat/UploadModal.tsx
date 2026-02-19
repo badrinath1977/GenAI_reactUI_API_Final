@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { uploadDocumentAPI } from "../../api/apiClient";
+import { uploadDocument } from "../../api/apiClient";
 
 interface Props {
   department: string;
@@ -8,47 +8,59 @@ interface Props {
 
 const UploadModal: React.FC<Props> = ({
   department,
-  onClose
+  onClose,
 }) => {
+  const [selectedFile, setSelectedFile] =
+    useState<File | null>(null);
 
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-
-  const handleUpload = async (): Promise<void> => {
-
-    if (!selectedFile) {
-      alert("Select a file first.");
+  const handleUpload = async () => {
+    if (!department) {
+      alert("Please select department first");
       return;
     }
 
-    const formData = new FormData();
-    formData.append("department", department);
-    formData.append("file", selectedFile);
+    if (!selectedFile) {
+      alert("Please choose a file");
+      return;
+    }
 
     try {
-      await uploadDocumentAPI(formData);
-      alert("File uploaded successfully.");
+      await uploadDocument(selectedFile, department);
+      alert("File uploaded successfully");
       onClose();
-    } catch (error) {
-      console.error(error);
+    } catch (error: any) {
+      alert(error.message || "Upload failed");
     }
   };
 
   return (
-    <div className="popup-overlay">
-      <div className="popup-box">
+    <div className="upload-overlay">
+      <div className="upload-modal">
 
-        <h3>Upload Document</h3>
+        <div className="upload-title">
+          Upload Document
+        </div>
 
         <input
           type="file"
           onChange={(e) =>
-            setSelectedFile(e.target.files?.[0] || null)
+            setSelectedFile(
+              e.target.files ? e.target.files[0] : null
+            )
           }
         />
 
-        <div className="popup-actions">
-          <button onClick={handleUpload}>Upload</button>
-          <button onClick={onClose}>Cancel</button>
+        <div className="upload-actions">
+          <button onClick={handleUpload}>
+            Upload
+          </button>
+
+          <button
+            className="cancel-btn"
+            onClick={onClose}
+          >
+            Cancel
+          </button>
         </div>
 
       </div>

@@ -1,40 +1,48 @@
-import React from "react";
-import { FiPaperclip } from "react-icons/fi";
-import { IoSend } from "react-icons/io5";
+import React, { useState } from "react";
+import { SendMessageHandler } from "../../models/ChatTypes";
 
 interface Props {
-  question: string;
-  setQuestion: (q: string) => void;
-  onSend: () => void;
-  onUploadClick: () => void;
+  onSend: SendMessageHandler;
 }
 
-const ChatInput: React.FC<Props> = ({
-  question,
-  setQuestion,
-  onSend,
-  onUploadClick
-}) => {
+const ChatInput: React.FC<Props> = ({ onSend }) => {
+  const [input, setInput] = useState("");
+  const [sending, setSending] = useState(false);
+
+  const handleSend = async () => {
+    if (!input.trim()) return;
+
+    try {
+      setSending(true);
+      await onSend(input.trim());
+      setInput("");
+    } finally {
+      setSending(false);
+    }
+  };
+
+  const handleKeyDown = (
+    e: React.KeyboardEvent<HTMLInputElement>
+  ) => {
+    if (e.key === "Enter") {
+      handleSend();
+    }
+  };
 
   return (
-    <div className="input-area">
-
-      <button className="icon-btn" onClick={onUploadClick}>
-        <FiPaperclip size={18} />
-      </button>
-
+    <div className="chat-input">
       <input
         type="text"
         placeholder="Ask something..."
-        value={question}
-        onChange={(e) => setQuestion(e.target.value)}
-        onKeyDown={(e) => e.key === "Enter" && onSend()}
+        value={input}
+        onChange={(e) => setInput(e.target.value)}
+        onKeyDown={handleKeyDown}
+        disabled={sending}
       />
 
-      <button className="icon-btn" onClick={onSend}>
-        <IoSend size={18} />
+      <button onClick={handleSend} disabled={sending}>
+        {sending ? "Sending..." : "Send"}
       </button>
-
     </div>
   );
 };

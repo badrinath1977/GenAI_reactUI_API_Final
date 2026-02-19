@@ -1,12 +1,11 @@
 import React, { useEffect, useRef } from "react";
-import { Message } from "../../models/MessageModels";
+import { Message } from "../../models/ChatTypes";
 
 interface Props {
   messages: Message[];
 }
 
 const ChatMessages: React.FC<Props> = ({ messages }) => {
-
   const bottomRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -15,15 +14,14 @@ const ChatMessages: React.FC<Props> = ({ messages }) => {
 
   return (
     <div className="chat-area">
-      {messages.map((msg, index) => (
+      {messages.map((msg) => (
         <div
-          key={index}
+          key={msg.id}
           className={msg.type === "user" ? "user-msg" : "bot-msg"}
         >
           {msg.text}
         </div>
       ))}
-
       <div ref={bottomRef} />
     </div>
   );
