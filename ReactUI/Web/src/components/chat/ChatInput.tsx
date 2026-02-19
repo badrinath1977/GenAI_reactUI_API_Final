@@ -1,41 +1,41 @@
-import React from "react";
+import React, { useState } from "react";
 
 interface Props {
-  question: string;
-  setQuestion: (q: string) => void;
-  onSend: () => void;
-  onUploadClick: () => void;
+  onSend: (q: string) => void;
+  disabled?: boolean;
 }
 
 const ChatInput: React.FC<Props> = ({
-  question,
-  setQuestion,
   onSend,
-  onUploadClick,
+  disabled,
 }) => {
+  const [input, setInput] = useState("");
+
+  const handleSend = () => {
+    if (!input.trim() || disabled) return;
+    onSend(input);
+    setInput("");
+  };
 
   return (
-    <div className="input-area">
+        <div className="chat-input">
+          <input
+            type="text"
+            value={input}
+            disabled={disabled}
+            autoFocus
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) =>
+              e.key === "Enter" && handleSend()
+            }
+        />
+
       <button
-        className="plus-btn"
-        onClick={onUploadClick}
+        disabled={disabled}
+        onClick={handleSend}
       >
-        +
+        Send
       </button>
-
-      <input
-        type="text"
-        placeholder="Ask something..."
-        value={question}
-        onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-          setQuestion(e.target.value)
-        }
-        onKeyDown={(e) =>
-          e.key === "Enter" && onSend()
-        }
-      />
-
-      <button onClick={onSend}>Send</button>
     </div>
   );
 };

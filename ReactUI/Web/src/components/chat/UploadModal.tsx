@@ -1,67 +1,211 @@
 import React, { useState } from "react";
-import { uploadDocumentAPI } from "../../api/apiClient";
+import {
+  uploadDocument,
+  sendChatMessage,
+} from "../../api/apiClient";
+import { Message } from "../../models/ChatTypes";
 
 interface Props {
+  userId: string;
   department: string;
   onClose: () => void;
+  onSummaryGenerated: (msg: Message) => void;
 }
 
 const UploadModal: React.FC<Props> = ({
+  userId,
   department,
   onClose,
+  onSummaryGenerated,
 }) => {
+  const [file, setFile] = useState<File | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [showDuplicatePopup, setShowDuplicatePopup] = useState(false);
 
-  const [selectedFile, setSelectedFile] =
-    useState<File | null>(null);
+  const simulateProgress = () => {
+    return new Promise<void>((resolve) => {
+      let value = 0;
+      const interval = setInterval(() => {
+        value += 10;
+        setProgress(value);
+        if (value >= 100) {
+          clearInterval(interval);
+          resolve();
+        }
+      }, 200);
+    });
+  };
 
-  const handleUpload = async (): Promise<void> => {
+  const summarizeFile = async () => {
+    if (!file) return;
 
-    if (!selectedFile) {
-      alert("Please select a file.");
-      return;
-    }
+    const response = await sendChatMessage(
+      userId,
+      `Summarize the document ${file.name} in bullet points`,
+      department
+    );
 
-    const formData = new FormData();
-    formData.append("department", department);
-    formData.append("file", selectedFile);
+    const summaryMessage: Message = {
+      id: crypto.randomUUID(),
+      type: "bot",
+      text: response.answer,
+      timestamp: new Date().toISOString(),
+      department,
+    };
 
-    try {
-      await uploadDocumentAPI(formData);
-      alert("File uploaded successfully.");
+    onSummaryGenerated(summaryMessage);
+  };
+
+  const finishProcess = () => {
+    setLoading(false);
+    setProgress(0);
+
+    setTimeout(() => {
       onClose();
-    } catch (error) {
-      console.error(error);
-      alert("Upload failed.");
+    }, 300);
+  };
+
+  // const processUpload = async () => {
+  //   if (!file || !department) return;
+
+  //   setLoading(true);
+  //   setProgress(0);
+
+  //   try {
+  //     // Try normal upload
+  //     await uploadDocument(file, department);
+
+  //     await simulateProgress();
+  //     await summarizeFile();
+  //     finishProcess();
+  //   } catch (error: any) {
+  //     // Duplicate file detected
+  //     if (error?.status === 400) {
+  //       setShowDuplicatePopup(true);
+  //     } else {
+  //       console.error(error);
+  //       finishProcess();
+  //     }
+  //   }
+  // };
+
+  const processUpload = async () => {
+  if (!file || !department) return;
+
+  setLoading(true);
+  setProgress(0);
+
+  try {
+    await uploadDocument(file, department);
+
+    await simulateProgress();
+    await summarizeFile();
+    finishProcess();
+  } catch (error: any) {
+    if (error?.status === 400) {
+      // Do NOT console.error
+      setShowDuplicatePopup(true);
+    } else {
+      // Only log unexpected errors
+      console.warn("Unexpected upload error:", error);
+      finishProcess();
     }
+  }
+};
+
+
+  const handleOverwrite = async () => {
+    setShowDuplicatePopup(false);
+
+    // No second upload call (backend does not support overwrite)
+    await simulateProgress();
+    await summarizeFile();
+    finishProcess();
+  };
+
+  const handleCancelDuplicate = async () => {
+    setShowDuplicatePopup(false);
+
+    await simulateProgress();
+    await summarizeFile();
+    finishProcess();
   };
 
   return (
-    <div className="popup-overlay">
-      <div className="popup-box">
-        <h3>Upload Document</h3>
+    <div className="upload-overlay">
+      <div className="upload-modal">
 
-        <p>
-          <strong>Department:</strong> {department}
-        </p>
+        {!showDuplicatePopup ? (
+          <>
+            <div className="upload-title">
+              Upload File
+            </div>
 
-        <input
-          type="file"
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-            setSelectedFile(
-              e.target.files?.[0] || null
-            )
-          }
-        />
+            <input
+              type="file"
+              disabled={loading}
+              onChange={(e) =>
+                setFile(
+                  e.target.files
+                    ? e.target.files[0]
+                    : null
+                )
+              }
+            />
 
-        <div className="popup-actions">
-          <button onClick={handleUpload}>
-            Upload
-          </button>
+            {loading && (
+              <div className="progress-bar">
+                <div
+                  className="progress-fill"
+                  style={{ width: `${progress}%` }}
+                />
+                <span>{progress}%</span>
+              </div>
+            )}
 
-          <button onClick={onClose}>
-            Cancel
-          </button>
-        </div>
+            <div className="upload-actions">
+              <button
+                disabled={loading}
+                onClick={processUpload}
+              >
+                {loading ? "Processing..." : "Upload"}
+              </button>
+
+              <button
+                disabled={loading}
+                className="cancel-btn"
+                onClick={onClose}
+              >
+                Cancel
+              </button>
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="upload-title">
+              File already exists
+            </div>
+
+            <p>
+              This file was already uploaded.
+              What would you like to do?
+            </p>
+
+            <div className="upload-actions">
+              <button onClick={handleOverwrite}>
+                Overwrite
+              </button>
+              <button
+                className="cancel-btn"
+                onClick={handleCancelDuplicate}
+              >
+                Cancel
+              </button>
+            </div>
+          </>
+        )}
+
       </div>
     </div>
   );

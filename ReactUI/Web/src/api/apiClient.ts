@@ -1,34 +1,133 @@
-import { ChatRequest, ChatResponse } from "../models/ChatModels";
+// src/api/apiClient.ts
 
-const BASE_URL = "http://localhost:8001";
+import { config } from "../config";
 
-export const sendChatAPI = async (
-  payload: ChatRequest
-): Promise<ChatResponse> => {
 
-  const res = await fetch(`${BASE_URL}/chat/`, {
+const BASE_URL =
+  import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8002";
+console.log("DEBUG URL:", BASE_URL);
+
+/**
+ * -----------------------------
+ * Chat API
+ * -----------------------------
+ */
+export async function sendChatMessage(
+  userId: string,
+  question: string,
+  department: string
+) {
+  const response = await fetch(`${config.apiBaseUrl}/chat/`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      user_id: userId,
+      question,
+      department,
+    }),
   });
 
-  if (!res.ok) {
-    throw new Error("Chat API failed");
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.detail || "Chat API failed");
   }
 
-  return res.json();
-};
+  return data;
+}
 
-export const uploadDocumentAPI = async (
-  formData: FormData
-): Promise<void> => {
+/**
+ * -----------------------------
+ * Upload API
+ * -----------------------------
+ */
+// export async function uploadDocument(
+//   file: File,
+//   department: string
+// ) {
+//   const formData = new FormData();
+//   formData.append("file", file);
+//   formData.append("department", department);
 
-  const res = await fetch(`${BASE_URL}/upload/document`, {
-    method: "POST",
-    body: formData,
-  });
+//   const response = await fetch(
+//     `${config.apiBaseUrl}/upload/document`,
+//     {
+//       method: "POST",
+//       body: formData,
+//     }
+//   );
 
-  if (!res.ok) {
-    throw new Error("Upload failed");
+//   const data = await response.json();
+
+//   if (!response.ok) {
+//     throw new Error(data.detail || "Upload failed");
+//   }
+
+//   return data;
+// }
+
+// export const uploadDocument = async (
+//   file: File,
+//   department: string
+// ) => {
+//   const formData = new FormData();
+//   formData.append("file", file);
+//   formData.append("department", department);
+
+//   const response = await fetch(
+//     `${BASE_URL}/upload/document`,
+//     {
+//       method: "POST",
+//       body: formData,
+//     }
+//   );
+
+//   if (!response.ok) {
+//     const errorData = await response.json().catch(() => null);
+
+//     const error: any = new Error(
+//       errorData?.detail || "Upload failed"
+//     );
+
+//     error.status = response.status;
+//     error.detail = errorData?.detail;
+
+//     throw error;
+//   }
+
+//   return response.json();
+// };
+
+export const uploadDocument = async (
+  file: File,
+  department: string
+) => {
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("department", department);
+
+  const response = await fetch(
+    `${BASE_URL}/upload/document`,
+    {
+      method: "POST",
+      body: formData,
+    }
+  );
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => null);
+
+    const error: any = new Error(
+      errorData?.detail || "Upload failed"
+    );
+
+    error.status = response.status;
+    error.detail = errorData?.detail;
+
+    throw error;
   }
+
+  return response.json();
 };

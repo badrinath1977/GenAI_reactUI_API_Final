@@ -1,0 +1,8 @@
+/* GLOBAL RESET */
+body {
+  margin: 0;
+  padding: 0;
+  height: 100vh;
+  font-family: "Segoe UI", Arial, sans-serif;
+  background: #f4f6f9;
+}

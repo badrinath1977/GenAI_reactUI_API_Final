@@ -1,0 +1,53 @@
+.upload-overlay {
+  position: absolute;
+  bottom: 80px;
+  left: 10px;
+  right: 10px;
+  background: rgba(0, 0, 0, 0.4);
+  padding: 12px;
+  border-radius: 12px;
+  z-index: 100;
+}
+
+.upload-modal {
+  background: white;
+  padding: 12px;
+  border-radius: 12px;
+}
+
+.upload-title {
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+.upload-actions {
+  margin-top: 10px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.cancel-btn {
+  background: #ccc;
+  color: black;
+}
+.progress-bar {
+  margin-top: 10px;
+  height: 10px;
+  background: #ddd;
+  border-radius: 5px;
+  position: relative;
+}
+
+.progress-fill {
+  height: 100%;
+  background: #2d7ff9;
+  border-radius: 5px;
+  transition: width 0.2s ease;
+}
+
+.progress-bar span {
+  display: block;
+  text-align: center;
+  font-size: 11px;
+  margin-top: 4px;
+}

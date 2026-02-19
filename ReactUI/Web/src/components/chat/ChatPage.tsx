@@ -1,80 +1,168 @@
 import React, { useState } from "react";
-import Header from "../layout/Header";
-import Footer from "../layout/Footer";
-import ChatMessages from "./ChatMessages";
+import { sendChatMessage } from "../../api/apiClient";
+import { Message } from "../../models/ChatTypes";
 import ChatInput from "./ChatInput";
+import ChatMessages from "./ChatMessages";
 import UploadModal from "./UploadModal";
-import { Message } from "../../models/MessageModels";
-import { ChatRequest } from "../../models/ChatModels";
-import { sendChatAPI } from "../../api/apiClient";
+import Toast from "../Toast";
 
-const ChatPage: React.FC = () => {
+interface Props {
+  userId: string;
+  onLogout: () => void;
+}
 
-  const [department, setDepartment] =
-    useState<string>("IT");
+const ChatPage: React.FC<Props> = ({
+  userId,
+  onLogout,
+}) => {
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [department, setDepartment] = useState("");
+  const [isSending, setIsSending] = useState(false);
+  const [showUpload, setShowUpload] = useState(false);
+  const [toast, setToast] = useState("");
 
-  const [question, setQuestion] =
-    useState<string>("");
+  // 🔐 Strict validation
+  const isDepartmentValid = () => {
+    return department !== "";
+  };
 
-  const [messages, setMessages] =
-    useState<Message[]>([]);
+  const streamText = async (
+    fullText: string,
+    messageId: string
+  ) => {
+    const words = fullText.split(" ");
+    let current = "";
 
-  const [showModal, setShowModal] =
-    useState<boolean>(false);
+    for (let i = 0; i < words.length; i++) {
+      current += words[i] + " ";
 
-  const handleSend = async (): Promise<void> => {
+      setMessages((prev) =>
+        prev.map((msg) =>
+          msg.id === messageId
+            ? { ...msg, text: current }
+            : msg
+        )
+      );
 
-    if (!question.trim()) return;
+      await new Promise((res) =>
+        setTimeout(res, 25)
+      );
+    }
+  };
 
-    const payload: ChatRequest = {
-      user_id: "Badri_User",
-      question,
-      department,
-      provider: null,
-      model_name: null,
-    };
+  const handleSendMessage = async (question: string) => {
+    if (!isDepartmentValid()) {
+      setToast("Select department first.");
+      setTimeout(() => setToast(""), 2500);
+      return;
+    }
+
+    setIsSending(true);
+
+    const responseId = crypto.randomUUID();
+
+    setMessages((prev) => [
+      ...prev,
+      {
+        id: crypto.randomUUID(),
+        type: "user",
+        text: question,
+        timestamp: new Date().toISOString(),
+        department,
+      },
+      {
+        id: responseId,
+        type: "bot",
+        text: "",
+        timestamp: new Date().toISOString(),
+        department,
+      },
+    ]);
 
     try {
-      const response = await sendChatAPI(payload);
+      const response = await sendChatMessage(
+        userId,
+        question,
+        department
+      );
 
-      setMessages((prev) => [
-        ...prev,
-        { type: "user", text: question },
-        { type: "bot", text: response.answer },
-      ]);
-
-      setQuestion("");
-
-    } catch (error) {
-      console.error(error);
+      await streamText(response.answer, responseId);
+    } catch {
+      setToast("Error occurred");
+      setTimeout(() => setToast(""), 2500);
     }
+
+    setIsSending(false);
   };
 
   return (
     <div className="chat-container">
+      <div className="chat-header">
+        🤖 Enterprise AI Assistant
+        <button
+          className="logout-btn"
+          onClick={onLogout}
+          title={`Logout (${userId})`}
+        >
+          ⎋
+        </button>
+      </div>
 
-      <Header
-        department={department}
-        setDepartment={setDepartment}
-      />
+      <select
+        value={department}
+        onChange={(e) =>
+          setDepartment(e.target.value)
+        }
+        className="department-select"
+      >
+        <option value="">
+          Select Department
+        </option>
+        <option value="HR">HR</option>
+        <option value="IT">IT</option>
+        <option value="Finance">Finance</option>
+        <option value="All">All</option>
+      </select>
 
       <ChatMessages messages={messages} />
 
-      <ChatInput
-        question={question}
-        setQuestion={setQuestion}
-        onSend={handleSend}
-        onUploadClick={() => setShowModal(true)}
-      />
+      <div className="bottom-section">
+        <div className="chat-input-wrapper">
 
-      {showModal && (
+          <button
+            className="attach-btn"
+            disabled={isSending || !isDepartmentValid()}
+            onClick={() => {
+              if (!isDepartmentValid()) {
+                setToast("Select department first.");
+                setTimeout(() => setToast(""), 2500);
+                return;
+              }
+              setShowUpload(true);
+            }}
+          >
+            +
+          </button>
+
+          <ChatInput
+            onSend={handleSendMessage}
+            disabled={isSending || !isDepartmentValid()}
+          />
+        </div>
+      </div>
+
+      {showUpload && (
         <UploadModal
+          userId={userId}
           department={department}
-          onClose={() => setShowModal(false)}
+          onClose={() => setShowUpload(false)}
+          onSummaryGenerated={(msg) =>
+            setMessages((prev) => [...prev, msg])
+          }
         />
       )}
 
-      <Footer />
+      {toast && <Toast message={toast} />}
     </div>
   );
 };
