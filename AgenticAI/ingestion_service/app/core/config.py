@@ -25,6 +25,7 @@ class Settings(BaseSettings):
     OPENAI_API_KEY: str
     LLM_MODEL_NAME: str
     EMBEDDING_MODEL_NAME: str
+    OPENAI_MODEL: str
 
     # Vector DB
     VECTOR_DB_PATH: str

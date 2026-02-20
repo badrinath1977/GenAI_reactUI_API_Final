@@ -1,3 +1,5 @@
+# app/services/vector_store_service.py
+
 import os
 from langchain_community.vectorstores import FAISS
 from app.services.embedding_factory import get_embeddings
@@ -7,6 +9,9 @@ from app.core.config import settings
 class VectorStoreService:
 
     def __init__(self, department: str):
+
+        if not department:
+            raise ValueError("Department is required")
 
         self.department = department
         self.embeddings = get_embeddings()
@@ -18,7 +23,9 @@ class VectorStoreService:
 
         os.makedirs(self.vector_path, exist_ok=True)
 
-        if os.path.exists(os.path.join(self.vector_path, "index.faiss")):
+        index_path = os.path.join(self.vector_path, "index.faiss")
+
+        if os.path.exists(index_path):
             self.vectorstore = FAISS.load_local(
                 self.vector_path,
                 self.embeddings,
@@ -27,8 +34,10 @@ class VectorStoreService:
         else:
             self.vectorstore = None
 
-    # Add documents and persist
     def add_documents(self, documents):
+
+        if not documents:
+            raise ValueError("No documents provided")
 
         if self.vectorstore:
             self.vectorstore.add_documents(documents)
@@ -45,4 +54,6 @@ class VectorStoreService:
         if not self.vectorstore:
             raise Exception("Vector store empty. Upload documents first.")
 
-        return self.vectorstore.as_retriever(search_kwargs={"k": 4})
+        return self.vectorstore.as_retriever(
+            search_kwargs={"k": 4}
+        )

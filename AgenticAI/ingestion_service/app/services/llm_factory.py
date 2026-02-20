@@ -1,20 +1,21 @@
+# app/services/llm_factory.py
+
 from langchain_openai import ChatOpenAI
-
-# 🔴 TEMPORARY HARDCODE FOR TESTING
-OPENAI_KEY = "Put your OpenAI key here"
-
+from app.core.config import settings
 
 _llm_instance = None
 
 
-def get_llm():
+def get_llm() -> ChatOpenAI:
     global _llm_instance
 
     if _llm_instance is None:
         _llm_instance = ChatOpenAI(
-            model="gpt-3.5-turbo",
-            openai_api_key=OPENAI_KEY,
-            temperature=0
+            model=settings.OPENAI_MODEL,      # e.g. gpt-4o-mini
+            api_key=settings.OPENAI_API_KEY,
+            temperature=0,
+            max_retries=2,
+            timeout=30
         )
 
     return _llm_instance
